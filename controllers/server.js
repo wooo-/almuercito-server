@@ -51,14 +51,76 @@ var Server = class Server extends EventEmitter {
   /**
   * Handles an incoming message from a remote client.
   */
-  handleMessage(msg, rinfo) {
+  handleMessage(messageBuffer, remoteInfo) {
+    if (messageBuffer.length === 0) {
+      return;
+    }
 
+    let clientId = `${remoteInfo.address}:${remoteInfo.port}`;
+    let codes = Message.codes;
+
+    // Join client if new
+    if (!(clientId in this.clients) && messageBuffer[0] === codes.HELLO) {
+      this.clients[clientId] = {
+        room: null,
+        address: remoteInfo.address,
+        port: remoteInfo.port,
+        lastSeen: Date.now()
+      };
+    }
+
+    let message = new Message(this.clients[clientId], messageBuffer);
+
+    // Server answers
+    let answer = null;
+    if (message.kind & 0xF0 === 0x10) {
+      answer = this.answerForLowLevelMessage(message);
+    } else {
+      return; // TODO: implement game and server objects
+    }
+
+    if (message !== null) {
+      this.sendMessage(this.clients[clientId], message);
+    }
   }
 
-  sendMessage(client, message) {
-    if (message.data instanceof Buffer) {
+  /**
+  * Returns an answer for a low level server message, that is, a message
+  * that does not require to be delivered to the game engine.
+  */
+  answerForLowLevelMessage(message) {
+    let codes = Message.codes;
+    let answer = null;
+
+    // Server HELLO
+    if (message.kind === codes.HELLO) {
+      answer = new Message(new Buffer([codes.HELLO]));
+
+    // Server KEEPALIVE
+    } else if (message.kind === codes.KEEPALIVE) {
+      answer = new Message(new Buffer([codes.KEEPALIVE]));
+
+    // Server PING (clock sync)
+    } else if (message.kind === codes.PING && message.buffer.length === 3) {
+      let room = message.client.room;
+      if (room !== null) {
+        let buffer = new Buffer(7);
+        buffer[0] = codes.PING;
+        buffer[1] = message.buffer[1];
+        buffer[2] = message.buffer[2];
+        buffer.writeUInt32BE(Date.now() - room.startTime, 3);
+        answer = new Message(buffer);
+      }
+    }
+
+    return answer;
+  }
+
+  sendMessage(message) {
+    if (message.buffer instanceof Buffer) {
       this.socket.send(
-        message.data, 0, message.data.length, client.port, client.address
+        message.buffer, 0, message.buffer.length,
+        message.client.port, message.client.address
       );
     }
   }
