@@ -4,14 +4,13 @@
 
   let Vector3 = class Vector3 {
     /**
-    * Class constructor
+    * Class constructor.
     */
     constructor(x, y, z) {
-      this._a = [
-        x || 0.0,
-        y || 0.0,
-        z || 0.0
-      ];
+      this._a = new Float32Array(3);
+      this._a[0] = x || 0.0;
+      this._a[1] = y || 0.0;
+      this._a[2] = z || 0.0;
     }
 
     /**
@@ -136,6 +135,29 @@
         this._a[0] * this._a[0] +
         this._a[1] * this._a[1] +
         this._a[2] * this._a[2]
+      );
+    }
+
+    /**
+    * Returns the distance between this vector and a given one.
+    */
+    distanceTo(vector) {
+      return Math.sqrt(
+        (this._a[0] - vector._a[0]) * (this._a[0] - vector._a[0]) +
+        (this._a[1] - vector._a[1]) * (this._a[1] - vector._a[1]) +
+        (this._a[2] - vector._a[2]) * (this._a[2] - vector._a[2])
+      );
+    }
+
+    /**
+    * Returns the squared distance between this vector and a given one.
+    * Performs better than .distanceTo() that is not always necessary.
+    */
+    distanceToSquared(vector) {
+      return (
+        (this._a[0] - vector._a[0]) * (this._a[0] - vector._a[0]) +
+        (this._a[1] - vector._a[1]) * (this._a[1] - vector._a[1]) +
+        (this._a[2] - vector._a[2]) * (this._a[2] - vector._a[2])
       );
     }
 
