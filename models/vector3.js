@@ -6,11 +6,11 @@
     /**
     * Class constructor.
     */
-    constructor(x, y, z) {
+    constructor(x = 0.0, y = 0.0, z = 0.0) {
       this._a = new Float32Array(3);
-      this._a[0] = x || 0.0;
-      this._a[1] = y || 0.0;
-      this._a[2] = z || 0.0;
+      this._a[0] = x;
+      this._a[1] = y;
+      this._a[2] = z;
     }
 
     /**
