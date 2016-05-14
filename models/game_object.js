@@ -18,7 +18,7 @@ var GameObject = class GameObject extends EventEmitter {
   * define custom motion rules over this.velocity (like force-mass-based)
   * before calling super().
   */
-  update(gameTime) {
+  update(gameTime, world) {
     // p = p + v*dt
     this.position = this.position.add(
       this.velocity.multiply((gameTime - this.lastUpdate) / 1000)
