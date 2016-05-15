@@ -2,7 +2,7 @@
 const EventEmitter = require('events');
 const Vector3 = require('./vector3');
 
-var GameObject = class GameObject extends EventEmitter {
+let GameObject = class GameObject extends EventEmitter {
   /**
   * Class constructor.
   */
@@ -18,13 +18,13 @@ var GameObject = class GameObject extends EventEmitter {
   * define custom motion rules over this.velocity (like force-mass-based)
   * before calling super().
   */
-  update(gameTime, world) {
+  update(world) {
     // p = p + v*dt
     this.position = this.position.add(
-      this.velocity.multiply((gameTime - this.lastUpdate) / 1000)
+      this.velocity.multiply((world.time - this.lastUpdate) / 1000)
     );
 
-    this.lastUpdate = gameTime;
+    this.lastUpdate = world.time;
   }
 };
 

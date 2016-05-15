@@ -14,14 +14,18 @@ let World = class World extends EventEmitter {
 
     // World objects
     this.gameObjects = [];
+
+    // Game time
+    this.time = 0;
   }
 
   /**
   * Updates the state of the game objects contained within this world.
   */
   update(gameTime) {
+    this.time = gameTime;
     for (let i = 0; i < this.gameObjects.length; ++i) {
-      this.gameObjects[i].update(gameTime, this);
+      this.gameObjects[i].update(this);
     }
   }
 };

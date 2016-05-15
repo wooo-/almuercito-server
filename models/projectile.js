@@ -14,22 +14,27 @@ let Projectile = class Projectile extends GameObject {
     super(); // position, velocity, lastUpdate
   }
 
-  launch(gameTime, position, velocity, mass) {
+  /**
+  * Sets the initial data required to perform a parametric calculation
+  * of the position and veocity in time for this projectile. It will
+  * start moving when calling update().
+  */
+  launch(time, position, velocity, mass) {
     this.initialPosition = position;
     this.initialVelocity = velocity;
-    this.initialTime = gameTime;
+    this.initialTime = time;
     this.mass = mass;
     this.position = position;
     this.velocity = velocity;
-    this.lastUpdate = gameTime;
+    this.lastUpdate = time;
   }
 
   /**
   * Updates the state of this projectile. A ballistic trajectory is used
   * to calculate the velocity and position at the given game time.
   */
-  update(gameTime, world) {
-    let t = gameTime - this.initialTime;
+  update(world) {
+    let t = world.time - this.initialTime;
 
     // v = v0 + a*t
     this.velocity = this.initialVelocity.add(
@@ -43,7 +48,7 @@ let Projectile = class Projectile extends GameObject {
       this.world.gravity.multiply(t * t / 2)
     );
 
-    this.lastUpdate = gameTime;
+    this.lastUpdate = world.time;
   }
 };
 
