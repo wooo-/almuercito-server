@@ -1,8 +1,9 @@
 /* jshint esversion: 6 */
+'use strict';
 const Game = require('./Game');
 const World = require('../models/world');
 
-var AlmuercitoGame = class AlmuercitoGame extends Game {
+let AlmuercitoGame = class AlmuercitoGame extends Game {
   constructor() {
     super();
     this.world = new World();
@@ -60,7 +61,7 @@ var AlmuercitoGame = class AlmuercitoGame extends Game {
   */
   end() {
     this.run = false;
-    super();
+    super.end();
   }
 };
 

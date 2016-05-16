@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+'use strict';
 const GameObject = require('./game_object');
 const Vector3 = require('./vector3');
 

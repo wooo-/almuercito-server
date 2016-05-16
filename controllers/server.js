@@ -11,7 +11,7 @@ const numberOfRooms = 1; // TODO: make this a setting
 /**
 * Server class definition.
 */
-var Server = class Server extends EventEmitter {
+let Server = class Server extends EventEmitter {
   /**
   * Server class constructor.
   */

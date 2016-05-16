@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+'use strict';
 const EventEmitter = require('events');
 
 /**
