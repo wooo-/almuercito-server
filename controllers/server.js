@@ -4,7 +4,9 @@
 const EventEmitter = require('events');
 const Dgram = require('dgram');
 const Message = require('../models/message');
+const Game = require('./almuercito_game'); // TODO: make this a setting
 const defaultPort = 7800;
+const numberOfRooms = 1; // TODO: make this a setting
 
 /**
 * Server class definition.
@@ -19,6 +21,7 @@ var Server = class Server extends EventEmitter {
     // Game rooms and clients dictionaries
     this.clients = {};
     this.rooms = {};
+    this.numberOfRooms = numberOfRooms;
 
     // Networking initialization
     this.port = port || defaultPort;
@@ -44,6 +47,14 @@ var Server = class Server extends EventEmitter {
   * Starts the server listener.
   */
   start() {
+    // Create the rooms
+    for (let i = 0; i < this.numberOfRooms; ++i) {
+      let game = new Game();
+      this.rooms[`Room ${i}`] = game;
+      game.start();
+    }
+
+    // Start the network listener
     console.log('Starting listener on port ' + this.port + '...');
     this.socket.bind(this.port);
   }
