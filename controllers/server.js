@@ -70,14 +70,20 @@ let Server = class Server extends EventEmitter {
     let clientId = `${remoteInfo.address}:${remoteInfo.port}`;
     let codes = Message.codes;
 
-    // Join client if new
-    if (!(clientId in this.clients) && messageBuffer[0] === codes.HELLO) {
-      this.clients[clientId] = {
-        room: null,
-        address: remoteInfo.address,
-        port: remoteInfo.port,
-        lastSeen: Date.now()
-      };
+    // If unkown client
+    if (!(clientId in this.clients)) {
+      // Join client if we are asked to
+      if (messageBuffer[0] === codes.HELLO) {
+        this.clients[clientId] = {
+          room: null,
+          address: remoteInfo.address,
+          port: remoteInfo.port,
+          lastSeen: Date.now()
+        };
+      } else {
+        // Unknown client, ignore message
+        return;
+      }
     }
 
     let message = new Message(this.clients[clientId], messageBuffer);
