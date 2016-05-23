@@ -25,6 +25,7 @@ let Tester = class Tester {
     });
     this.tests = tests;
     this.currentTestIndex = -1;
+    this.timer = null;
   }
 
   /**
@@ -32,6 +33,7 @@ let Tester = class Tester {
    * running test for evaluation.
    */
   handleMessage(message, remoteInfo) {
+    clearTimeout(this.timer);
     if (this.currentTestIndex >= this.tests.length) {
       return;
     }
@@ -70,6 +72,10 @@ let Tester = class Tester {
       console.log('Testing completed.');
       return;
     }
+
+    this.timer = setTimeout(() => {
+      this.evalResult('Test timed out.');
+    }, 1000);
 
     let result = this.tests[this.currentTestIndex].test(this.socket);
     if (typeof this.tests[this.currentTestIndex].waitAnswer !== 'function') {
