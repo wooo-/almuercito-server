@@ -38,9 +38,6 @@ let Server = class Server extends EventEmitter {
     this.socket.on('listening', () => {
       this.handleListening();
     });
-
-    let probe = Dgram.createSocket('udp4');
-    probe.send('Loopback test completed!', 0, 24, this.port, 'localhost');
   }
 
   /**
@@ -80,6 +77,7 @@ let Server = class Server extends EventEmitter {
           port: remoteInfo.port,
           lastSeen: Date.now()
         };
+        console.log('New client connected: ' + clientId);
       } else {
         // Unknown client, ignore message
         return;
@@ -90,14 +88,14 @@ let Server = class Server extends EventEmitter {
 
     // Server answers
     let answer = null;
-    if (message.kind & 0xF0 === 0x10) {
+    if ((message.kind & 0xF0) === 0x10) {
       answer = this.answerForLowLevelMessage(message);
     } else {
       return; // TODO: implement game and server objects
     }
 
-    if (message !== null) {
-      this.sendMessage(this.clients[clientId], message);
+    if (answer !== null) {
+      this.sendMessage(answer);
     }
   }
 
@@ -111,35 +109,47 @@ let Server = class Server extends EventEmitter {
 
     // Server HELLO
     if (message.kind === codes.HELLO) {
-      answer = new Message(new Buffer([codes.HELLO]));
+      answer = new Message(message.client, new Buffer([codes.HELLO]));
 
     // Server KEEPALIVE
     } else if (message.kind === codes.KEEPALIVE) {
-      answer = new Message(new Buffer([codes.KEEPALIVE]));
+      answer = new Message(message.client, new Buffer([codes.KEEPALIVE]));
 
     // Server PING (clock sync)
     } else if (message.kind === codes.PING && message.buffer.length === 3) {
       let room = message.client.room;
       if (room !== null) {
-        let buffer = new Buffer(7);
+        let buffer = new Buffer(11);
         buffer[0] = codes.PING;
+
+        // Sequence number
         buffer[1] = message.buffer[1];
         buffer[2] = message.buffer[2];
+
+        // Client time
+        buffer[3] = message.buffer[3];
+        buffer[4] = message.buffer[4];
+        buffer[5] = message.buffer[5];
+        buffer[6] = message.buffer[6];
+
+        // Server time (4 bytes)
         buffer.writeUInt32BE(Date.now() - room.startTime, 3);
-        answer = new Message(buffer);
+        answer = new Message(message.client, buffer);
       }
     }
 
     return answer;
   }
 
+  /**
+   * Sends a message to a client.
+   * @param  {Message} message An object with a client and a buffer.
+   */
   sendMessage(message) {
-    if (message.buffer instanceof Buffer) {
-      this.socket.send(
-        message.buffer, 0, message.buffer.length,
-        message.client.port, message.client.address
-      );
-    }
+    this.socket.send(
+      message.buffer, 0, message.buffer.length,
+      message.client.port, message.client.address
+    );
   }
 
   /**
@@ -156,6 +166,8 @@ let Server = class Server extends EventEmitter {
   handleListening() {
     var address = this.socket.address();
     console.log(`Server listening on ${address.address}:${address.port}`);
+
+    this.emit('listening');
   }
 };
 

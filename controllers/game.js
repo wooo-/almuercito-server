@@ -56,6 +56,7 @@ var Game = class Game extends EventEmitter {
   * start new game. Override this method to create initial game objects.
   */
   start() {
+    this.startTime = Date.now();
     this.emit('started');
   }
 
