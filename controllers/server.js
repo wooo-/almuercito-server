@@ -88,9 +88,11 @@ let Server = class Server extends EventEmitter {
 
     // Server answers
     let answer = null;
+    // Low level message kinds are between 0x10 and 0x1F
     if ((message.kind & 0xF0) === 0x10) {
       answer = this.answerForLowLevelMessage(message);
     } else {
+      // Server objects in 0x20 (json). Game object in 0x30 (byte arrays)
       return; // TODO: implement game and server objects
     }
 
@@ -116,10 +118,10 @@ let Server = class Server extends EventEmitter {
       answer = new Message(message.client, new Buffer([codes.KEEPALIVE]));
 
     // Server PING (clock sync)
-    } else if (message.kind === codes.PING && message.buffer.length === 3) {
+    } else if (message.kind === codes.PING && message.buffer.length === 7) {
       let room = message.client.room;
       if (room !== null) {
-        let buffer = new Buffer(11);
+        let buffer = new Buffer(11); // request (7 bytes) + 4 additional bytes
         buffer[0] = codes.PING;
 
         // Sequence number
@@ -133,9 +135,10 @@ let Server = class Server extends EventEmitter {
         buffer[6] = message.buffer[6];
 
         // Server time (4 bytes)
-        buffer.writeUInt32BE(Date.now() - room.startTime, 3);
+        buffer.writeUInt32BE(Date.now() - room.startTime, 7);
         answer = new Message(message.client, buffer);
       }
+
     }
 
     return answer;
