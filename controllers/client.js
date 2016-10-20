@@ -17,17 +17,32 @@ let Client = class Client extends EventEmitter {
   constructor(address, port) {
     super();
 
+    // Message handling strategies
+    this.messageHandlers = {};
+    this.messageHandlers[Message.codes.HELLO] = this.handleHello;
+
     // Networking initialization
     this.serverAddress = address;
     this.serverPort = port || defaultPort;
+    this.connected = false;
     this.socket = Dgram.createSocket('udp4');
+
+    this.socket.on('error', (err) => {
+      if (!this.connected) {
+        // I guess we were trying to connect...
+        console.log('Connection failed.');
+
+        // Since UDP doesn't care about connections it's probably a DNS error
+        console.log(err);
+      }
+    });
 
     this.socket.on('message', (msg, rinfo) => {
       this.handleMessage(msg, rinfo);
     });
 
     // Attempt to connect
-    console.log('Listening...');
+    console.log('Connecting...');
     let buffer = new Buffer(1);
     buffer[0] = Message.codes.HELLO;
     this.sendMessage(buffer);
@@ -38,7 +53,6 @@ let Client = class Client extends EventEmitter {
    * @param  {Buffer} buffer The message to be sent.
    */
   sendMessage(buffer) {
-    console.log('Sending message...');
     this.socket.send(
       buffer, 0, buffer.length,
       this.serverPort, this.serverAddress
@@ -49,8 +63,21 @@ let Client = class Client extends EventEmitter {
   * Handles an incoming message from the server.
   */
   handleMessage(messageBuffer, remoteInfo) {
-    // Do something
-    console.log(messageBuffer);
+    // Delegate the message handling to the strategy for that kind of message
+    if (messageBuffer.length > 0 &&
+        this.messageHandlers.hasOwnProperty(messageBuffer[0].toString())) {
+      this.messageHandlers[messageBuffer[0].toString()](messageBuffer);
+    }
+  }
+
+  /**
+  * Handles a server hello message.
+  */
+  handleHello() {
+    if (!this.connected) {
+      this.connected = true;
+      console.log('Connected!');
+    }
   }
 };
 
